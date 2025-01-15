@@ -100,10 +100,5 @@ class PPO
         }
     }
 
-    static void Main(string[] args)
-    {
-        SimpleEnv env = new SimpleEnv();
-        PPO ppo = new PPO();
-        ppo.Train(env, 100);
-    }
+
 }
