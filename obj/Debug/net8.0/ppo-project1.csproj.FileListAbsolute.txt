@@ -1,0 +1,15 @@
+C:\Users\ronin\OneDrive\Desktop\stuff\ppo project1\ppo-project1\bin\Debug\net8.0\ppo-project1.exe
+C:\Users\ronin\OneDrive\Desktop\stuff\ppo project1\ppo-project1\bin\Debug\net8.0\ppo-project1.deps.json
+C:\Users\ronin\OneDrive\Desktop\stuff\ppo project1\ppo-project1\bin\Debug\net8.0\ppo-project1.runtimeconfig.json
+C:\Users\ronin\OneDrive\Desktop\stuff\ppo project1\ppo-project1\bin\Debug\net8.0\ppo-project1.dll
+C:\Users\ronin\OneDrive\Desktop\stuff\ppo project1\ppo-project1\bin\Debug\net8.0\ppo-project1.pdb
+C:\Users\ronin\OneDrive\Desktop\stuff\ppo project1\ppo-project1\obj\Debug\net8.0\ppo-project1.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\ronin\OneDrive\Desktop\stuff\ppo project1\ppo-project1\obj\Debug\net8.0\ppo-project1.AssemblyInfoInputs.cache
+C:\Users\ronin\OneDrive\Desktop\stuff\ppo project1\ppo-project1\obj\Debug\net8.0\ppo-project1.AssemblyInfo.cs
+C:\Users\ronin\OneDrive\Desktop\stuff\ppo project1\ppo-project1\obj\Debug\net8.0\ppo-project1.csproj.CoreCompileInputs.cache
+C:\Users\ronin\OneDrive\Desktop\stuff\ppo project1\ppo-project1\obj\Debug\net8.0\ppo-project1.sourcelink.json
+C:\Users\ronin\OneDrive\Desktop\stuff\ppo project1\ppo-project1\obj\Debug\net8.0\ppo-project1.dll
+C:\Users\ronin\OneDrive\Desktop\stuff\ppo project1\ppo-project1\obj\Debug\net8.0\refint\ppo-project1.dll
+C:\Users\ronin\OneDrive\Desktop\stuff\ppo project1\ppo-project1\obj\Debug\net8.0\ppo-project1.pdb
+C:\Users\ronin\OneDrive\Desktop\stuff\ppo project1\ppo-project1\obj\Debug\net8.0\ppo-project1.genruntimeconfig.cache
+C:\Users\ronin\OneDrive\Desktop\stuff\ppo project1\ppo-project1\obj\Debug\net8.0\ref\ppo-project1.dll
