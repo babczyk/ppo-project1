@@ -27,8 +27,8 @@ class PPO
 
     private const double Gamma = 0.99f;
     private const double ClipEpsilon = 0.2f;
-    private const double LearningRate = 0.001f;
-    private const int Epochs = 2;
+    private const double LearningRate = 0.0005f;
+    private const int Epochs = 4;
     private const int HiddenSize = 64;
     private const double EntropyCoef = 0.02f;
 
@@ -260,8 +260,8 @@ class PPO
             if (totalReward > bestReward)
             {
                 bestReward = totalReward;
-                SaveModel(modelPath + $"{episode}", new { Policy1 = policyWeights1, Policy2 = policyWeights2, Value1 = valueWeights1, Value2 = valueWeights2 });
                 Console.WriteLine($"New best reward: {bestReward}");
+                SaveModel(modelPath);
             }
 
             // Save progress periodically
@@ -278,15 +278,18 @@ class PPO
     /// <typeparam name="T"></typeparam>
     /// <param name="filePath"></param>
     /// <returns></returns>
-    public T LoadModel<T>(string filePath)
+    private void LoadModel(string filePath)
     {
-        var json = File.ReadAllText(filePath);
-        var result = JsonSerializer.Deserialize<T>(json);
-        if (result == null)
-        {
-            throw new InvalidOperationException("Deserialization resulted in a null object.");
-        }
-        return result;
+        if (!File.Exists(filePath))
+            throw new FileNotFoundException("Model file not found.");
+
+        string json = File.ReadAllText(filePath);
+        var model = JsonSerializer.Deserialize<dynamic>(json);
+
+        policyWeights1 = ConvertTo2DArray(JsonSerializer.Deserialize<double[][]>(model.Policy1.ToString()));
+        policyWeights2 = JsonSerializer.Deserialize<double[]>(model.Policy2.ToString());
+        valueWeights1 = ConvertTo2DArray(JsonSerializer.Deserialize<double[][]>(model.Value1.ToString()));
+        valueWeights2 = JsonSerializer.Deserialize<double[]>(model.Value2.ToString());
     }
 
     /// <summary>
@@ -297,19 +300,30 @@ class PPO
     /// <exception cref="InvalidOperationException"></exception>
     public (int episode, double bestReward, List<int> recentRewards) LoadProgress(string filePath)
     {
-        var json = File.ReadAllText(filePath);
-        if (string.IsNullOrEmpty(json))
+        string json = File.ReadAllText(filePath);
+        var progress = JsonSerializer.Deserialize<JsonElement>(json);
+        Console.WriteLine(progress);
+
+        // Accessing specific properties:
+        if (progress.TryGetProperty("Episode", out var episodeProperty))
         {
-            throw new InvalidOperationException("The progress file is empty or not found.");
+            int episode = episodeProperty.GetInt32();
+            Console.WriteLine($"Episode: {episode}");
+        }
+        else
+        {
+            throw new InvalidOperationException("Failed to find 'Episode' in the deserialized JSON.");
         }
 
-        var progress = JsonSerializer.Deserialize<dynamic>(json);
-        if (progress == null)
-        {
-            throw new InvalidOperationException("Failed to deserialize the progress file.");
-        }
 
-        return ((int)progress.Episode, (double)progress.BestReward, ((JsonElement)progress.RecentRewards).EnumerateArray().Select(e => e.GetInt32()).ToList());
+        var episodeA = progress.GetProperty("Episode").GetInt32();
+        var bestReward = progress.GetProperty("BestReward").GetDouble();
+        var recentRewards = progress.GetProperty("RecentRewards")
+                                    .EnumerateArray()
+                                    .Select(e => e.GetInt32())
+                                    .ToList();
+
+        return (episodeA, bestReward, recentRewards);
     }
 
     /// <summary>
@@ -317,9 +331,17 @@ class PPO
     /// </summary>
     /// <param name="filePath"></param>
     /// <param name="model"></param>
-    public void SaveModel(string filePath, object model)
+    private void SaveModel(string filePath)
     {
-        var json = JsonSerializer.Serialize(model);
+        var model = new
+        {
+            Policy1 = ConvertToJaggedArray(policyWeights1),
+            Policy2 = policyWeights2,
+            Value1 = ConvertToJaggedArray(valueWeights1),
+            Value2 = valueWeights2
+        };
+
+        string json = JsonSerializer.Serialize(model, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(filePath, json);
     }
 
@@ -427,5 +449,36 @@ class PPO
 
         for (int i = 0; i < valueWeights2.Length; i++)
             valueWeights2[i] -= LearningRate * loss;
+    }
+
+    private static double[][] ConvertToJaggedArray(double[,] array)
+    {
+        int rows = array.GetLength(0);
+        int cols = array.GetLength(1);
+        double[][] jaggedArray = new double[rows][];
+        for (int i = 0; i < rows; i++)
+        {
+            jaggedArray[i] = new double[cols];
+            for (int j = 0; j < cols; j++)
+            {
+                jaggedArray[i][j] = array[i, j];
+            }
+        }
+        return jaggedArray;
+    }
+
+    private static double[,] ConvertTo2DArray(double[][] jaggedArray)
+    {
+        int rows = jaggedArray.Length;
+        int cols = jaggedArray[0].Length;
+        double[,] array = new double[rows, cols];
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < cols; j++)
+            {
+                array[i, j] = jaggedArray[i][j];
+            }
+        }
+        return array;
     }
 }
