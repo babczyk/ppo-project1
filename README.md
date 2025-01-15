@@ -1,2 +1,1 @@
-# ppo-project1
-proximity policy optimization projectX
+# proximity policy optimization projectX
