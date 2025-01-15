@@ -84,9 +84,9 @@ class GridWorldEnv
         }
 
 
-        int currentDistance = Math.Abs(agentPos.row - goalPos.row) + Math.Abs(agentPos.col - goalPos.col);
-        int newDistance = Math.Abs(newPos.row - goalPos.row) + Math.Abs(newPos.col - goalPos.col);
-        Console.WriteLine(@"currentDistance: " + currentDistance + " newDistance: " + newDistance);
+        int currentDistance = Math.Abs(agentPos.row - goalPos.row) - Math.Abs(agentPos.col - goalPos.col);
+        int newDistance = Math.Abs(newPos.row - goalPos.row) - Math.Abs(newPos.col - goalPos.col);
+
 
         // Check if new position is valid
         if (newPos.row >= 0 && newPos.row < SIZE &&
@@ -105,14 +105,14 @@ class GridWorldEnv
             }
             else if (newDistance <= currentDistance)
             {
-                reward = 2; // Bonus for getting closer to the goal
+                reward = 5; // Bonus for getting closer to the goal
             }
 
             grid[agentPos.row, agentPos.col] = AGENT;
         }
         else
         {
-            reward = -1; // Penalty for hitting wall or boundary
+            reward = -5; // Penalty for hitting wall or boundary
         }
 
 
@@ -122,6 +122,7 @@ class GridWorldEnv
 
             reward = -10;
             stepCount = 0;
+            done = true;
         }
 
         Render(totalReward, episode, state, rewards);

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 
 class PPO
 {
@@ -24,10 +25,10 @@ class PPO
     /// </summary>
     private double[] valueWeights2;
 
-    private const double Gamma = 0.9f;
+    private const double Gamma = 0.99f;
     private const double ClipEpsilon = 0.2f;
     private const double LearningRate = 0.001f;
-    private const int Epochs = 4;
+    private const int Epochs = 2;
     private const int HiddenSize = 64;
     private const double EntropyCoef = 0.02f;
 
@@ -80,7 +81,7 @@ class PPO
     /// <param name="weights">Weight matrix</param>
     /// <param name="biasWeights">Optional bias weights</param>
     /// <returns>Output vector after linear transformation</returns>
-    private double[] LinearLayer(double[] input, double[,] weights, double[] biasWeights = null)
+    private double[] LinearLayer(double[] input, double[,] weights, double[]? biasWeights = null)
     {
         int outputSize = weights.GetLength(1);
         double[] output = new double[outputSize];
@@ -201,11 +202,17 @@ class PPO
     /// </summary>
     /// <param name="env">The environment to train in</param>
     /// <param name="episodes">Number of episodes to train for</param>
-    public void Train(GridWorldEnv env, int episodes)
+    public void Train(GridWorldEnv env, int episodes, string modelPath, string progressPath)
     {
         double bestReward = double.MinValue;
-
-        for (int episode = 0; episode < episodes; episode++)
+        int episode = 0;
+        if (File.Exists(progressPath))
+        {
+            var progress = LoadProgress(progressPath);
+            episode = progress.episode;
+            bestReward = progress.bestReward;
+        }
+        for (; episode < episodes; episode++)
         {
             List<double[]> stateVectors = new List<double[]>();
             List<int> actions = new List<int>();
@@ -253,14 +260,86 @@ class PPO
             if (totalReward > bestReward)
             {
                 bestReward = totalReward;
+                SaveModel(modelPath + $"{episode}", new { Policy1 = policyWeights1, Policy2 = policyWeights2, Value1 = valueWeights1, Value2 = valueWeights2 });
                 Console.WriteLine($"New best reward: {bestReward}");
             }
 
+            // Save progress periodically
             if (episode % 10 == 0)
             {
+                SaveProgress(progressPath, episode, bestReward, rewards);
                 Console.WriteLine($"Episode {episode + 1}: Total Reward = {totalReward}, Average Reward = {rewards.Average():F2}");
             }
         }
+    }
+    /// <summary>
+    /// Loads a model from a JSON file.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="filePath"></param>
+    /// <returns></returns>
+    public T LoadModel<T>(string filePath)
+    {
+        var json = File.ReadAllText(filePath);
+        var result = JsonSerializer.Deserialize<T>(json);
+        if (result == null)
+        {
+            throw new InvalidOperationException("Deserialization resulted in a null object.");
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Loads the policy and value networks from a JSON file.
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    public (int episode, double bestReward, List<int> recentRewards) LoadProgress(string filePath)
+    {
+        var json = File.ReadAllText(filePath);
+        if (string.IsNullOrEmpty(json))
+        {
+            throw new InvalidOperationException("The progress file is empty or not found.");
+        }
+
+        var progress = JsonSerializer.Deserialize<dynamic>(json);
+        if (progress == null)
+        {
+            throw new InvalidOperationException("Failed to deserialize the progress file.");
+        }
+
+        return ((int)progress.Episode, (double)progress.BestReward, ((JsonElement)progress.RecentRewards).EnumerateArray().Select(e => e.GetInt32()).ToList());
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <param name="model"></param>
+    public void SaveModel(string filePath, object model)
+    {
+        var json = JsonSerializer.Serialize(model);
+        File.WriteAllText(filePath, json);
+    }
+
+    /// <summary>
+    /// Saves the current training progress to a JSON file.
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <param name="episode"></param>
+    /// <param name="bestReward"></param>
+    /// <param name="recentRewards"></param>
+    public void SaveProgress(string filePath, int episode, double bestReward, List<int> recentRewards)
+    {
+        var progress = new
+        {
+            Episode = episode,
+            BestReward = bestReward,
+            RecentRewards = recentRewards
+        };
+        var json = JsonSerializer.Serialize(progress);
+        File.WriteAllText(filePath, json);
     }
 
     /// <summary>
