@@ -51,6 +51,7 @@ class GridWorldEnv
             goalPos.col = random.Next(SIZE);
         } while (grid[goalPos.row, goalPos.col] != EMPTY);
         grid[goalPos.row, goalPos.col] = GOAL;
+
     }
 
     public int GetState()
@@ -103,16 +104,24 @@ class GridWorldEnv
                 reward = 500;
                 done = true;
             }
-            else if (newDistance <= currentDistance)
+            else
             {
-                reward = 5; // Bonus for getting closer to the goal
+                if (newDistance <= currentDistance)
+                {
+                    reward = 3; // Bonus for getting closer to the goal
+                }
+                else
+                {
+                    reward = -1; // Penalty for getting further from the goal
+                }
+
             }
 
             grid[agentPos.row, agentPos.col] = AGENT;
         }
         else
         {
-            reward = -5; // Penalty for hitting wall or boundary
+            reward = -1; // Penalty for hitting wall or boundary
         }
 
 
@@ -120,7 +129,7 @@ class GridWorldEnv
         if (GetStepCount() > SIZE * SIZE * 2)
         {
 
-            reward = -10;
+            reward = -100;
             stepCount = 0;
             done = true;
         }
@@ -154,6 +163,6 @@ class GridWorldEnv
         }
         Console.Write(@"total reward: " + totalReward + " episode: " + episode + " state: " + state);
 
-        Thread.Sleep(100); // Slow down visualization
+        Thread.Sleep(1); // Slow down visualization
     }
 }
